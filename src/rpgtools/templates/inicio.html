@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<h1>Mesas</h1>
+{% if mesas %}
+<ul class="lista-mesas">
+  {% for mesa in mesas %}
+  <li><a href="/mesas/{{ mesa.id }}">{{ mesa.nome }}</a>{% if mesa.exibindo_asset_id %} <span class="selo">na tela</span>{% endif %}</li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="vazio">Nenhuma mesa ainda. Crie a primeira abaixo.</p>
+{% endif %}
+<form method="post" action="/mesas" class="linha">
+  <input name="nome" required maxlength="200" placeholder="Nome da mesa (ex.: Tormenta – quinta à noite)">
+  <button>Criar mesa</button>
+</form>
+{% endblock %}

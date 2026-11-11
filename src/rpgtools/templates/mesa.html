@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block titulo %}{{ mesa.nome }} · Escudo do mestre{% endblock %}
+{% block migalha %}<span>/ {{ mesa.nome }}</span>{% endblock %}
+{% block conteudo %}
+{% if erros %}
+<div class="alerta" role="alert">
+  <strong>Alguns arquivos foram recusados:</strong>
+  <ul>{% for e in erros %}<li>{{ e }}</li>{% endfor %}</ul>
+</div>
+{% endif %}
+
+<div class="mesa">
+<section id="assets" class="assets">
+  <div class="cabecalho">
+    <h1>{{ mesa.nome }}</h1>
+    <form method="post" action="/mesas/{{ mesa.id }}/limpar">
+      <button class="secundario" {% if not mesa.exibindo_asset_id %}disabled{% endif %}>Limpar tela</button>
+    </form>
+  </div>
+
+  <form method="post" action="/mesas/{{ mesa.id }}/assets" enctype="multipart/form-data" class="envio">
+    <input type="file" name="arquivos" multiple required accept="image/png,image/jpeg,image/webp,image/gif">
+    <button>Enviar imagens</button>
+    <small>PNG, JPEG, WebP ou GIF, até 20 MB cada.</small>
+  </form>
+
+  {% if assets %}
+  <ul class="grade">
+    {% for asset in assets %}
+    {% set na_tela = asset.id == mesa.exibindo_asset_id %}
+    <li class="asset{% if na_tela %} na-tela{% endif %}" {% if na_tela %}aria-current="true"{% endif %}>
+      <form method="post" action="/mesas/{{ mesa.id }}/assets/{{ asset.id }}/exibir" class="exibir">
+        <button title="Exibir na tela remota">
+          <img src="/mesas/{{ mesa.id }}/assets/{{ asset.id }}/miniatura" alt="" loading="lazy">
+          {% if na_tela %}<span class="selo">na tela</span>{% endif %}
+        </button>
+      </form>
+      <details>
+        <summary>{{ asset.nome }}</summary>
+        <form method="post" action="/mesas/{{ mesa.id }}/assets/{{ asset.id }}/renomear" class="linha">
+          <input name="nome" value="{{ asset.nome }}" required maxlength="200" aria-label="Novo nome">
+          <button class="secundario">Renomear</button>
+        </form>
+        <p class="dim">{{ asset.largura }}×{{ asset.altura }} · <a href="/mesas/{{ mesa.id }}/assets/{{ asset.id }}/original" target="_blank">original</a></p>
+        <form method="post" action="/mesas/{{ mesa.id }}/assets/{{ asset.id }}/excluir"
+              onsubmit="return confirm('Excluir o asset “{{ asset.nome }}”?')">
+          <button class="perigo">Excluir</button>
+        </form>
+      </details>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="vazio">Nenhuma imagem ainda. Envie mapas, NPCs ou cenas para mostrar aos jogadores.</p>
+  {% endif %}
+</section>
+
+<aside class="lateral">
+  <section class="cartao">
+    <h2>Tela remota</h2>
+    <div class="qr">{{ qr | safe }}</div>
+    <p><a href="{{ url_tela }}" target="_blank" class="url">{{ url_tela }}</a></p>
+    <p class="dim">Abra na TV, no projetor ou no tablet (mesma rede). Toque na tela para tela cheia.</p>
+  </section>
+
+  <section class="cartao">
+    <div class="cabecalho">
+      <h2>Notas</h2>
+      <a href="/mesas/{{ mesa.id }}/notas/nova" class="botao">Nova nota</a>
+    </div>
+    {% if notas %}
+    <ul class="notas">
+      {% for nota in notas %}
+      <li><a href="/mesas/{{ mesa.id }}/notas/{{ nota.id }}">{{ nota.titulo }}</a></li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="vazio">Sem notas.</p>
+    {% endif %}
+  </section>
+
+  <section class="cartao">
+    <details>
+      <summary>Configurar mesa</summary>
+      <form method="post" action="/mesas/{{ mesa.id }}/renomear" class="linha">
+        <input name="nome" value="{{ mesa.nome }}" required maxlength="200" aria-label="Nome da mesa">
+        <button class="secundario">Renomear</button>
+      </form>
+      <form method="post" action="/mesas/{{ mesa.id }}/excluir"
+            onsubmit="return confirm('Excluir a mesa “{{ mesa.nome }}” com todas as notas e imagens? Não dá para desfazer.')">
+        <button class="perigo">Excluir mesa</button>
+      </form>
+    </details>
+  </section>
+</aside>
+</div>
+{% endblock %}

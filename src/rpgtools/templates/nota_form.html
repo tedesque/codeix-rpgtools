@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block titulo %}{{ "Editar nota" if nota else "Nova nota" }} · {{ mesa.nome }}{% endblock %}
+{% block migalha %}<span>/ <a href="/mesas/{{ mesa.id }}">{{ mesa.nome }}</a> / {{ "Editar nota" if nota else "Nova nota" }}</span>{% endblock %}
+{% block conteudo %}
+<form method="post" action="/mesas/{{ mesa.id }}/notas{% if nota %}/{{ nota.id }}{% endif %}" class="cartao form-nota">
+  <label>Título <input name="titulo" required maxlength="200" value="{{ nota.titulo if nota else '' }}" autofocus></label>
+  <label>Texto (Markdown) <textarea name="corpo" rows="20">{{ nota.corpo if nota else '' }}</textarea></label>
+  <div class="linha">
+    <button>Salvar</button>
+    <a href="{% if nota %}/mesas/{{ mesa.id }}/notas/{{ nota.id }}{% else %}/mesas/{{ mesa.id }}{% endif %}">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

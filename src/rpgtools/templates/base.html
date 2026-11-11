@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block titulo %}Escudo do mestre{% endblock %}</title>
+<link rel="stylesheet" href="/static/painel.css">
+</head>
+<body>
+<header class="topo">
+  <a href="/" class="marca">Escudo do mestre</a>
+  {% block migalha %}{% endblock %}
+</header>
+<main>
+{% block conteudo %}{% endblock %}
+</main>
+</body>
+</html>

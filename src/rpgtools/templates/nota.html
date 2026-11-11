@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block titulo %}{{ nota.titulo }} · {{ mesa.nome }}{% endblock %}
+{% block migalha %}<span>/ <a href="/mesas/{{ mesa.id }}">{{ mesa.nome }}</a> / {{ nota.titulo }}</span>{% endblock %}
+{% block conteudo %}
+<article class="cartao nota">
+  <div class="cabecalho">
+    <h1>{{ nota.titulo }}</h1>
+    <a href="/mesas/{{ mesa.id }}/notas/{{ nota.id }}/editar" class="botao">Editar</a>
+  </div>
+  <div class="markdown">{{ html | safe }}</div>
+</article>
+<form method="post" action="/mesas/{{ mesa.id }}/notas/{{ nota.id }}/excluir"
+      onsubmit="return confirm('Excluir a nota “{{ nota.titulo }}”?')">
+  <button class="perigo">Excluir nota</button>
+</form>
+{% endblock %}

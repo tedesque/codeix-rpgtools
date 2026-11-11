@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tela da mesa</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0b0b0f; color: #c9c3b6; overflow: hidden; }
+  body { font-family: Georgia, "Times New Roman", serif; cursor: pointer; }
+  #palco { position: fixed; top: 0; left: 0; right: 0; bottom: 0; }
+  #imagem { position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: contain; display: none; }
+  #neutro { position: absolute; top: 50%; left: 0; right: 0; text-align: center;
+            transform: translateY(-50%); -webkit-transform: translateY(-50%);
+            font-size: 5vmin; letter-spacing: .08em; opacity: .55; padding: 0 5vw; }
+  #aviso { position: fixed; bottom: 2vmin; right: 2vmin; font: 14px sans-serif;
+           background: rgba(0,0,0,.6); color: #e0b45a; padding: 6px 10px; border-radius: 4px;
+           display: none; }
+</style>
+</head>
+<body>
+<div id="palco">
+  <div id="neutro">Carregando…</div>
+  <img id="imagem" alt="">
+</div>
+<div id="aviso">reconectando…</div>
+<script>
+// ES5 + XMLHttpRequest de propósito: navegadores de smart TV costumam ser antigos.
+(function () {
+  var URL_ESTADO = "/tela/{{ mesa_id }}/estado";
+  var INTERVALO_MS = 1000;
+  var img = document.getElementById("imagem");
+  var neutro = document.getElementById("neutro");
+  var aviso = document.getElementById("aviso");
+  var ultimo = null;
+
+  function aplicar(estado) {
+    var chave = JSON.stringify(estado);
+    if (chave === ultimo) return;
+    ultimo = chave;
+    if (estado.erro) {
+      img.style.display = "none";
+      img.removeAttribute("src");
+      neutro.innerHTML = "";
+      neutro.appendChild(document.createTextNode("Mesa não encontrada"));
+      neutro.style.display = "block";
+      return;
+    }
+    if (estado.exibindo) {
+      // Troca só quando a nova imagem termina de carregar, para não piscar a tela.
+      var nova = new Image();
+      nova.onload = function () {
+        if (ultimo !== chave) return; // outra troca chegou antes desta carregar
+        img.src = estado.exibindo.url;
+        img.style.display = "block";
+        neutro.style.display = "none";
+      };
+      nova.src = estado.exibindo.url;
+      return;
+    }
+    img.style.display = "none";
+    img.removeAttribute("src");
+    neutro.innerHTML = "";
+    neutro.appendChild(document.createTextNode(estado.mesa));
+    neutro.style.display = "block";
+  }
+
+  function consultar() {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", URL_ESTADO + "?t=" + new Date().getTime(), true);
+    xhr.timeout = 4000;
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState !== 4) return;
+      if (xhr.status === 200 || xhr.status === 404) {
+        aviso.style.display = "none";
+        try { aplicar(JSON.parse(xhr.responseText)); } catch (e) {}
+      } else {
+        // Sem conexão: mantém o que está na tela e tenta de novo.
+        aviso.style.display = "block";
+      }
+      setTimeout(consultar, INTERVALO_MS);
+    };
+    xhr.send();
+  }
+
+  function telaCheia() {
+    var el = document.documentElement;
+    var pedir = el.requestFullscreen || el.webkitRequestFullscreen ||
+                el.mozRequestFullScreen || el.msRequestFullscreen;
+    var ativo = document.fullscreenElement || document.webkitFullscreenElement ||
+                document.mozFullScreenElement || document.msFullscreenElement;
+    if (!ativo && pedir) {
+      try { pedir.call(el); } catch (e) {}
+    }
+  }
+
+  document.body.addEventListener("click", telaCheia, false);
+  consultar();
+})();
+</script>
+</body>
+</html>
